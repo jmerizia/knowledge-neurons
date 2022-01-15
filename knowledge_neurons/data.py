@@ -78,7 +78,9 @@ def pararel(data_path: str = "datasets/pararel.json"):
 
 
 def pararel_expanded(
-    data_path: str = "datasets/pararel_expanded.json", obj_label_replacement=None
+    data_path: str = "datasets/pararel_expanded.json",
+    obj_label_replacement = None,
+    autoregressive = False,
 ):
     parent_dir = Path(data_path).parent
     os.makedirs(parent_dir, exist_ok=True)
@@ -95,16 +97,25 @@ def pararel_expanded(
             for vocab in value["vocab"]:
                 for graph in value["graphs"]:
                     if not PARAREL_EXPANDED.get(vocab["uuid"]):
+
                         PARAREL_EXPANDED[vocab["uuid"]] = {
                             "sentences": [],
                             "relation_name": key,
                             "obj_label": vocab["obj_label"],
                         }
-                    sentence = graph["pattern"]
-                    full_sentence = sentence.replace("[X]", vocab["sub_label"]).replace(
-                        "[Y]", "[MASK]"
-                    )
-                    PARAREL_EXPANDED[vocab["uuid"]]["sentences"].append(full_sentence)
+                    pattern = graph["pattern"]
+                    pattern = pattern.strip().strip('.').strip()
+                    if autoregressive:
+                        if pattern.endswith('[Y]'):
+                            full_sentence = pattern \
+                                .replace("[X]", vocab["sub_label"]) \
+                                .replace("[Y]", "[MASK]")
+                            PARAREL_EXPANDED[vocab["uuid"]]["sentences"].append(full_sentence)
+                    else:
+                        full_sentence = pattern \
+                            .replace("[X]", vocab["sub_label"]) \
+                            .replace("[Y]", "")
+                        PARAREL_EXPANDED[vocab["uuid"]]["sentences"].append(full_sentence)
         with open(data_path, "w") as f:
             json.dump(PARAREL_EXPANDED, f)
         return PARAREL_EXPANDED

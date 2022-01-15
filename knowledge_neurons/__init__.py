@@ -14,6 +14,7 @@ GPT_NEO_MODELS = [
     "EleutherAI/gpt-neo-125M",
     "EleutherAI/gpt-neo-1.3B",
     "EleutherAI/gpt-neo-2.7B",
+    "EleutherAI/gpt-j-6B",
 ]
 ALL_MODELS = BERT_MODELS + GPT2_MODELS + GPT_NEO_MODELS
 

@@ -27,10 +27,7 @@ class KnowledgeNeurons:
     ):
         self.model = model
         self.model_type = model_type
-        self.device = device or torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
-        )
-        self.model.to(self.device)
+        self.device = device or torch.device("cpu")
         self.tokenizer = tokenizer
 
         self.baseline_activations = None
@@ -41,6 +38,11 @@ class KnowledgeNeurons:
             self.output_ff_attr = "output.dense.weight"
             self.word_embeddings_attr = "bert.embeddings.word_embeddings.weight"
             self.unk_token = getattr(self.tokenizer, "unk_token_id", None)
+        elif self.model_type == "gpt-j":
+            self.transformer_layers_attr = "transformer.h"
+            self.input_ff_attr = "mlp.fc_in"
+            self.output_ff_attr = "mlp.fc_out.weight"
+            self.word_embeddings_attr = "transformer.wte.weight"
         elif "gpt" in model_type:
             self.transformer_layers_attr = "transformer.h"
             self.input_ff_attr = "mlp.c_fc"
@@ -158,7 +160,7 @@ class KnowledgeNeurons:
         tiled_activations = einops.repeat(activations, "b d -> (r b) d", r=steps)
         out = (
             tiled_activations
-            * torch.linspace(start=0, end=1, steps=steps).to(device)[:, None]
+            * torch.linspace(start=0, end=1, steps=steps).to(activations.device)[:, None]
         )
         return out
 
@@ -239,6 +241,7 @@ class KnowledgeNeurons:
                 steps=steps,
                 attribution_method=attribution_method,
             )
+            layer_scores = layer_scores.to(self.device)
             scores.append(layer_scores)
         return torch.stack(scores)
 

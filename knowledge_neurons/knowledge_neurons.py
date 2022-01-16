@@ -95,7 +95,7 @@ class KnowledgeNeurons:
             prompt, ground_truth
         )
         # for autoregressive models, we might want to generate > 1 token
-        if self.model_type == "gpt":
+        if 'gpt' in self.model_type:
             n_sampling_steps = len(target_label)
         else:
             n_sampling_steps = 1  # TODO: we might want to use multiple mask tokens even with bert models
@@ -443,7 +443,7 @@ class KnowledgeNeurons:
         )
 
         # for autoregressive models, we might want to generate > 1 token
-        if self.model_type == "gpt":
+        if 'gpt' in self.model_type:
             n_sampling_steps = len(target_label)
         else:
             n_sampling_steps = 1  # TODO: we might want to use multiple mask tokens even with bert models
@@ -452,7 +452,7 @@ class KnowledgeNeurons:
             integrated_grads = []
 
             for i in range(n_sampling_steps):
-                if i > 0 and self.model_type == "gpt":
+                if i > 0 and 'gpt' in self.model_type:
                     # retokenize new inputs
                     encoded_input, mask_idx, target_label = self._prepare_inputs(
                         prompt, ground_truth
@@ -518,6 +518,7 @@ class KnowledgeNeurons:
                         target_idx = target_label[i]
                     else:
                         target_idx = target_label
+                    #print(torch.unbind(probs[:, target_idx]), batch_weights.shape)
                     grad = torch.autograd.grad(
                         torch.unbind(probs[:, target_idx]), batch_weights
                     )[0]
@@ -547,7 +548,7 @@ class KnowledgeNeurons:
         elif attribution_method == "max_activations":
             activations = []
             for i in range(n_sampling_steps):
-                if i > 0 and self.model_type == "gpt":
+                if i > 0 and 'gpt' in self.model_type:
                     # retokenize new inputs
                     encoded_input, mask_idx, target_label = self._prepare_inputs(
                         prompt, ground_truth
@@ -754,14 +755,14 @@ class KnowledgeNeurons:
                     output_ff_weights[:, position].detach().clone()
                 )
             if mode == "edit":
-                if self.model_type == "gpt2":
+                if 'gpt' in self.model_type:
                     output_ff_weights[position, :] -= original_prediction_embedding * 2
                     output_ff_weights[position, :] += target_embedding * 2
                 else:
                     output_ff_weights[:, position] -= original_prediction_embedding * 2
                     output_ff_weights[:, position] += target_embedding * 2
             else:
-                if self.model_type == "gpt2":
+                if 'gpt' in self.model_type:
                     output_ff_weights[position, :] = erase_value
                 else:
                     output_ff_weights[:, position] = erase_value
@@ -787,7 +788,7 @@ class KnowledgeNeurons:
             # reverse modified weights
             for idx, (layer_idx, position) in enumerate(neurons):
                 output_ff_weights = self._get_output_ff_layer(layer_idx)
-                if self.model_type == "gpt2":
+                if 'gpt' in self.model_type:
                     output_ff_weights[position, :] = original_weight_values[idx]
                 else:
                     output_ff_weights[:, position] = original_weight_values[idx]

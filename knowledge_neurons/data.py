@@ -104,17 +104,17 @@ def pararel_expanded(
                             "obj_label": vocab["obj_label"],
                         }
                     pattern = graph["pattern"]
-                    pattern = pattern.strip().strip('.').strip()
                     if autoregressive:
+                        pattern = pattern.strip().strip('.').strip()
                         if pattern.endswith('[Y]'):
                             full_sentence = pattern \
                                 .replace("[X]", vocab["sub_label"]) \
-                                .replace("[Y]", "[MASK]")
+                                .replace("[Y]", "")
                             PARAREL_EXPANDED[vocab["uuid"]]["sentences"].append(full_sentence)
                     else:
                         full_sentence = pattern \
                             .replace("[X]", vocab["sub_label"]) \
-                            .replace("[Y]", "")
+                            .replace("[Y]", "[MASK]")
                         PARAREL_EXPANDED[vocab["uuid"]]["sentences"].append(full_sentence)
         with open(data_path, "w") as f:
             json.dump(PARAREL_EXPANDED, f)
